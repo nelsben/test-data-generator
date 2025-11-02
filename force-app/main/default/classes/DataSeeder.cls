@@ -67,25 +67,72 @@ public with sharing class DataSeeder {
     'Chief Marketing Officer',
     'IT Manager'
   };
-  private static final List<String> CITIES = new List<String>{
-    'San Francisco',
-    'New York',
-    'Chicago',
-    'Austin',
-    'Denver',
-    'Seattle',
-    'Atlanta',
-    'Boston'
+  private class StateAddressInfo {
+    public String stateAbbreviation;
+    public String capitalCity;
+    public List<String> streetNames;
+
+    public StateAddressInfo(
+      String stateAbbreviation,
+      String capitalCity,
+      List<String> streetNames
+    ) {
+      this.stateAbbreviation = stateAbbreviation;
+      this.capitalCity = capitalCity;
+      this.streetNames = streetNames;
+    }
+  }
+
+  private static final List<StateAddressInfo> STATE_ADDRESS_DATA = new List<StateAddressInfo>{
+    new StateAddressInfo(
+      'CA',
+      'Sacramento',
+      new List<String>{ 'Market', 'Mission', 'Broadway', 'Sunset' }
+    ),
+    new StateAddressInfo(
+      'NY',
+      'Albany',
+      new List<String>{ 'Hudson', 'Empire', 'State', 'Broadway' }
+    ),
+    new StateAddressInfo(
+      'IL',
+      'Springfield',
+      new List<String>{ 'Lincoln', 'Capitol', 'Prairie', 'Adams' }
+    ),
+    new StateAddressInfo(
+      'TX',
+      'Austin',
+      new List<String>{ 'Congress', 'Guadalupe', 'Trinity', 'Colorado' }
+    ),
+    new StateAddressInfo(
+      'CO',
+      'Denver',
+      new List<String>{ 'Colfax', 'Larimer', 'Speer', 'Arapahoe' }
+    ),
+    new StateAddressInfo(
+      'WA',
+      'Olympia',
+      new List<String>{ 'Capitol', 'Puget', 'Union', 'Evergreen' }
+    ),
+    new StateAddressInfo(
+      'GA',
+      'Atlanta',
+      new List<String>{ 'Peachtree', 'Magnolia', 'Piedmont', 'Highland' }
+    ),
+    new StateAddressInfo(
+      'MA',
+      'Boston',
+      new List<String>{ 'Commonwealth', 'Beacon', 'Charles', 'Harbor' }
+    )
   };
-  private static final List<String> STATES = new List<String>{
-    'CA',
-    'NY',
-    'IL',
-    'TX',
-    'CO',
-    'WA',
-    'GA',
-    'MA'
+
+  private static final List<String> STREET_SUFFIXES = new List<String>{
+    'St',
+    'Ave',
+    'Blvd',
+    'Rd',
+    'Ln',
+    'Way'
   };
   private static final List<String> CONTACT_FIRST_NAMES = new List<String>{
     'Alex',
@@ -173,15 +220,18 @@ public with sharing class DataSeeder {
     List<Account> accountsToInsert = new List<Account>();
     for (Integer i = 0; i < numberOfAccounts; i++) {
       String accountName = generateAccountName(i);
+      StateAddressInfo stateInfo = STATE_ADDRESS_DATA[
+        randomIndex(STATE_ADDRESS_DATA.size())
+      ];
       Account acct = new Account(
         Name = accountName,
         Type = ACCOUNT_TYPES[Math.mod(i, ACCOUNT_TYPES.size())],
         Industry = INDUSTRIES[randomIndex(INDUSTRIES.size())],
         AnnualRevenue = generateRevenue(i),
         NumberOfEmployees = 25 + randomInt(4500),
-        BillingStreet = '123 ' + accountName + ' Ave',
-        BillingCity = CITIES[randomIndex(CITIES.size())],
-        BillingState = STATES[randomIndex(STATES.size())],
+        BillingStreet = generateStreetAddress(stateInfo),
+        BillingCity = stateInfo.capitalCity,
+        BillingState = stateInfo.stateAbbreviation,
         BillingPostalCode = String.valueOf(90000 + randomInt(9999)),
         BillingCountry = 'United States',
         Description = 'Generated account seeded for data cloud testing'
@@ -326,6 +376,20 @@ public with sharing class DataSeeder {
   private static Decimal generateOpportunityAmount(Integer index) {
     Integer multiplier = 1 + randomInt(20);
     return 25000 * multiplier + (index * 1000);
+  }
+
+  private static String generateStreetAddress(StateAddressInfo stateInfo) {
+    Integer streetNumber = 100 + randomInt(9900);
+    String streetName = stateInfo.streetNames[
+      Math.mod(
+        randomInt(stateInfo.streetNames.size()),
+        stateInfo.streetNames.size()
+      )
+    ];
+    String suffix = STREET_SUFFIXES[
+      Math.mod(randomInt(STREET_SUFFIXES.size()), STREET_SUFFIXES.size())
+    ];
+    return streetNumber + ' ' + streetName + ' ' + suffix;
   }
 
   private static Integer randomInt(Integer upperExclusive) {
