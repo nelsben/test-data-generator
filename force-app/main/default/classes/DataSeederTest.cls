@@ -44,6 +44,43 @@ private class DataSeederTest {
       'Should create 3 opportunities per account.'
     );
 
+    Map<String, String> expectedCapitals = new Map<String, String>{
+      'CA' => 'Sacramento',
+      'NY' => 'Albany',
+      'IL' => 'Springfield',
+      'TX' => 'Austin',
+      'CO' => 'Denver',
+      'WA' => 'Olympia',
+      'GA' => 'Atlanta',
+      'MA' => 'Boston'
+    };
+
+    for (Account acct : [
+      SELECT Name, BillingCity, BillingState, BillingStreet
+      FROM Account
+    ]) {
+      String expectedCity = expectedCapitals.get(acct.BillingState);
+      System.assertNotEquals(
+        null,
+        expectedCity,
+        'Unexpected state abbreviation seeded: ' + acct.BillingState
+      );
+      System.assertEquals(
+        expectedCity,
+        acct.BillingCity,
+        'BillingCity should be the state capital for ' + acct.BillingState
+      );
+      System.assertNotEquals(
+        '123 ' + acct.Name + ' Ave',
+        acct.BillingStreet,
+        'Street should not follow the legacy template.'
+      );
+      System.assert(
+        !acct.BillingStreet.startsWith('123 '),
+        'Street number should be randomized.'
+      );
+    }
+
     Opportunity sampleOpportunity = [
       SELECT CloseDate, StageName, Amount
       FROM Opportunity
