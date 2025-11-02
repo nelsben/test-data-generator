@@ -1,18 +1,45 @@
-# Salesforce DX Project: Next Steps
+# Data Cloud Test Data Generator
 
-Now that you’ve created a Salesforce DX project, what’s next? Here are some documentation resources to get you started.
+This Salesforce DX project seeds realistic Accounts, Contacts, and Opportunities so you can create orgs with thousands of records for Data Cloud and Agentforce testing.
 
-## How Do You Plan to Deploy Your Changes?
+## Project Structure
 
-Do you want to deploy a set of changes, or create a self-contained application? Choose a [development model](https://developer.salesforce.com/tools/vscode/en/user-guide/development-models).
+All deployable metadata lives under `force-app/main/default`. The core data generation logic is implemented in the `DataSeeder` Apex class:
 
-## Configure Your Salesforce DX Project
+- `force-app/main/default/classes/DataSeeder.cls` — bulk seeding utility with invocable entry point
+- `force-app/main/default/classes/DataSeederTest.cls` — test coverage for seeding logic
 
-The `sfdx-project.json` file contains useful configuration information for your project. See [Salesforce DX Project Configuration](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) in the _Salesforce DX Developer Guide_ for details about this file.
+## Seeding Sample Data
 
-## Read All About It
+1. Authorize a target org (scratch org or sandbox):
+   ```bash
+   sf org login web --alias my-test-org
+   ```
+2. Push the metadata:
+   ```bash
+   sf project deploy start --target-org my-test-org
+   ```
+3. Run the seeding script to create data:
+   ```bash
+   sf apex run --target-org my-test-org --file scripts/apex/seedData.apex
+   ```
 
-- [Salesforce Extensions Documentation](https://developer.salesforce.com/tools/vscode/)
-- [Salesforce CLI Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_intro.htm)
-- [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_intro.htm)
-- [Salesforce CLI Command Reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference.htm)
+### Customizing the Seed
+
+The `DataSeeder.seedData` method accepts the following parameters:
+
+- `numberOfAccounts` (required)
+- `contactsPerAccount` (default 2)
+- `opportunitiesPerAccount` (default 3)
+- `opportunityHistoryInYears` (default 3)
+- `firstCloseDate` (defaults to today minus history years)
+
+Adjust the values in `scripts/apex/seedData.apex` or call `DataSeeder.runInvocable` from Flow to fit your scenario.
+
+## Running Tests
+
+Execute Apex tests to validate the generator:
+
+```bash
+sf apex run test --tests DataSeederTest --target-org my-test-org
+```
